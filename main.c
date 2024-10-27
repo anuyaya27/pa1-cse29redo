@@ -5,8 +5,8 @@
 
 #define MAX_INPUT_LENGTH 1024
 
-// Function 1 Milestone 1
-int is_ascii(char str[]) {
+// Function to check if all characters are ASCII
+int is_ascii(const char str[]) {
     for (int i = 0; str[i] != '\0'; i++) {
         if ((unsigned char)str[i] > 127) {
             return 0;
@@ -15,7 +15,7 @@ int is_ascii(char str[]) {
     return 1;
 }
 
-// Function 2 Milestone 1
+// Function to capitalize ASCII characters
 int32_t capitalize_ascii(char str[]) {
     int32_t count = 0;
     int32_t i = 0;
@@ -31,9 +31,7 @@ int32_t capitalize_ascii(char str[]) {
     return count;
 }
 
-
-
-// Function 3 Milestone 2
+// Function to determine byte width of a UTF-8 character
 int32_t width_from_start_byte(char start_byte) {
     unsigned char byte = (unsigned char)start_byte;
 
@@ -50,8 +48,8 @@ int32_t width_from_start_byte(char start_byte) {
     }
 }
 
-// Function 4 Milestone 2
-int32_t utf8_strlen(char str[]) {
+// Function to get UTF-8 string length in codepoints
+int32_t utf8_strlen(const char str[]) {
     int32_t length = 0;
     int32_t i = 0;
     while (str[i] != '\0') {
@@ -65,29 +63,13 @@ int32_t utf8_strlen(char str[]) {
     return length;
 }
 
-// Function 5 Milestone 2
-int32_t codepoint_index_to_byte_index(char str[], int32_t cpi) {
-    if (str == NULL || cpi < 0) {
-        return -1; 
-    }
+// Function to convert codepoint index to byte index
+int32_t codepoint_index_to_byte_index(const char str[], int32_t cpi) {
     int32_t byte_index = 0;
     for (int32_t codepoint_count = 0; str[byte_index] != '\0';) {
-        unsigned char c = (unsigned char)str[byte_index];
-        int num_bytes;
-
-        if (c < 128) {
-            num_bytes = 1; 
-        } else if (c < 192) {
-            return -1; 
-        } else if (c < 224) {
-            num_bytes = 2; 
-        } else if (c < 240) {
-            num_bytes = 3; 
-        } else if (c < 248) {
-            num_bytes = 4; 
-        } else {
-            return -1;
-        }
+        int num_bytes = width_from_start_byte(str[byte_index]);
+        if (num_bytes < 1) return -1;
+        
         if (codepoint_count == cpi) {
             return byte_index; 
         }
@@ -97,8 +79,8 @@ int32_t codepoint_index_to_byte_index(char str[], int32_t cpi) {
     return -1;
 }
 
-// Function 6 Milestone 2
-void utf8_substring(char str[], int32_t cpi_start, int32_t cpi_end, char result[]) {
+// Function to get a substring of a UTF-8 string in codepoints
+void utf8_substring(const char str[], int32_t cpi_start, int32_t cpi_end, char result[]) {
     int32_t start_byte_index = codepoint_index_to_byte_index(str, cpi_start);
     int32_t end_byte_index = codepoint_index_to_byte_index(str, cpi_end);
 
@@ -109,55 +91,46 @@ void utf8_substring(char str[], int32_t cpi_start, int32_t cpi_end, char result[
     }
 
     int32_t length = end_byte_index - start_byte_index;
-
-    for (int32_t i = 0; i < length; i++) {
-        result[i] = str[start_byte_index + i];
-    }
-
+    strncpy(result, str + start_byte_index, length);
     result[length] = '\0';
 }
 
-// Function 7 Milestone 3
-int32_t codepoint_at(char str[], int32_t cpi) {
-        int32_t byte_index = codepoint_index_to_byte_index(str, cpi);
+// Function to get codepoint at a specified index
+int32_t codepoint_at(const char str[], int32_t cpi) {
+    int32_t byte_index = codepoint_index_to_byte_index(str, cpi);
     if (byte_index == -1) return -1;
 
     int width = width_from_start_byte(str[byte_index]);
-
     int32_t codepoint = 0;
+    
     if (width == 1) {
         return str[byte_index];
     } else if (width == 2) {
-        codepoint = (str[byte_index] & 0x1F) << 6;
-        codepoint |= (str[byte_index + 1] & 0x3F);
+        codepoint = (str[byte_index] & 31) << 6;
+        codepoint |= (str[byte_index + 1] & 63);
     } else if (width == 3) {
-        codepoint = (str[byte_index] & 0x0F) << 12;
-        codepoint |= (str[byte_index + 1] & 0x3F) << 6;
-        codepoint |= (str[byte_index + 2] & 0x3F);
+        codepoint = (str[byte_index] & 15) << 12;
+        codepoint |= (str[byte_index + 1] & 63) << 6;
+        codepoint |= (str[byte_index + 2] & 63);
     } else if (width == 4) {
-        codepoint = (str[byte_index] & 0x07) << 18;
-        codepoint |= (str[byte_index + 1] & 0x3F) << 12;
-        codepoint |= (str[byte_index + 2] & 0x3F) << 6;
-        codepoint |= (str[byte_index + 3] & 0x3F);
+        codepoint = (str[byte_index] & 7) << 18;
+        codepoint |= (str[byte_index + 1] & 63) << 12;
+        codepoint |= (str[byte_index + 2] & 63) << 6;
+        codepoint |= (str[byte_index + 3] & 63);
     }
 
     return codepoint;
 }
 
-// Function 8 Milestone 3
-char is_animal_emoji_at(char str[], int32_t cpi) {
+// Function to check if a codepoint is an animal emoji
+char is_animal_emoji_at(const char str[], int32_t cpi) {
     int32_t current_codepoint = codepoint_at(str, cpi);
-
-    int32_t animal_s1 = codepoint_at("🐀", 0);
-    int32_t animal_e1 = codepoint_at("🐿", 0);
-    int32_t animal_s2 = codepoint_at("🦀", 0);
-    int32_t animal_e2 = codepoint_at("🦮", 0);
-
-    return (current_codepoint >= animal_s1 && current_codepoint <= animal_e1) ||
-           (current_codepoint >= animal_s2 && current_codepoint <= animal_e2);
+    return (current_codepoint >= 128000 && current_codepoint <= 128063) ||
+           (current_codepoint >= 129408 && current_codepoint <= 129431);
 }
 
-void next_utf8_char(char str[], int32_t cpi, char result[]) {
+// Function to get the next UTF-8 character after a specified codepoint
+void next_utf8_char(const char str[], int32_t cpi, char result[]) {
     int32_t current_codepoint = codepoint_at(str, cpi);
     if (current_codepoint == -1) {
         result[0] = '\0';
@@ -189,72 +162,32 @@ void next_utf8_char(char str[], int32_t cpi, char result[]) {
     }
 }
 
-
-// UTF-8 Analyzer in main
+// Main function for UTF-8 analysis
 int main() {
     char input[MAX_INPUT_LENGTH];
-    char original_input[MAX_INPUT_LENGTH];
     printf("Enter a UTF-8 encoded string: ");
     fgets(input, MAX_INPUT_LENGTH, stdin);
-
-    // Remove newline character at the end of input
     input[strcspn(input, "\n")] = '\0';
 
-    // Store a copy of the original input for later use
-    strncpy(original_input, input, MAX_INPUT_LENGTH);
+    // Copy of the input for unchanged calculations
+    char original_input[MAX_INPUT_LENGTH];
+    strcpy(original_input, input);
 
-    // Function calls using the original input where needed
-    int ascii_valid = is_ascii(input);
-    printf("\n");
-    printf("Valid ASCII: %s\n", ascii_valid ? "true" : "false");
+    int ascii_valid = is_ascii(original_input);
+    printf("\nValid ASCII: %s\n", ascii_valid ? "true" : "false");
 
-    // Capitalize ASCII characters in input
     int32_t capitalized_count = capitalize_ascii(input);
     printf("Uppercased ASCII: \"%s\"\n", input);
 
-    // Length in bytes and number of code points
-    int32_t byte_length = strlen(input);
+    int32_t byte_length = strlen(original_input);
     printf("Length in bytes: %d\n", byte_length);
 
-    int32_t code_point_count = utf8_strlen(input);
+    int32_t code_point_count = utf8_strlen(original_input);
     printf("Number of code points: %d\n", code_point_count);
 
-    // Bytes per code point
     printf("Bytes per code point: ");
     for (int32_t i = 0; i < code_point_count; i++) {
-        int byte_index = codepoint_index_to_byte_index(input, i);
+        int byte_index = codepoint_index_to_byte_index(original_input, i);
         if (byte_index != -1) {
-            printf("%d ", width_from_start_byte(input[byte_index]));
+            printf("%d ", width_from_start_byte(original_input[byte_index]));
         }
-    }
-    printf("\n");
-
-    // Use original input to get substring
-    char substring[MAX_INPUT_LENGTH];
-    utf8_substring(original_input, 0, 6, substring);
-    printf("Substring of the first 6 code points: \"%s\"\n", substring);
-
-    // Code points as decimal numbers
-    printf("Code points as decimal numbers: ");
-    for (int32_t i = 0; i < code_point_count; i++) {
-        printf("%d ", codepoint_at(input, i));
-    }
-    printf("\n");
-
-    // Detect and print animal emojis
-    printf("Animal emojis: ");
-    for (int32_t i = 0; i < code_point_count; i++) {
-        if (is_animal_emoji_at(input, i)) {
-            int byte_index = codepoint_index_to_byte_index(input, i);
-            int width = width_from_start_byte(input[byte_index]);
-            printf("%.*s ", width, &input[byte_index]);
-        }
-    }
-    
-    char next_char[MAX_INPUT_LENGTH];
-    next_utf8_char(input, 3, next_char);  // Example for codepoint index 3
-    printf("Next Character of Codepoint at Index 3: \"%s\"\n", next_char);
-
-    printf("\n");
-    return 0;
-}

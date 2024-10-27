@@ -157,28 +157,69 @@ char is_animal_emoji_at(char str[], int32_t cpi) {
            (current_codepoint >= animal_s2 && current_codepoint <= animal_e2);
 }
 
+void next_utf8_char(char str[], int32_t cpi, char result[]) {
+    int32_t current_codepoint = codepoint_at(str, cpi);
+    if (current_codepoint == -1) {
+        result[0] = '\0';
+        return;
+    }
+
+    int32_t next_codepoint = current_codepoint + 1;
+
+    if (next_codepoint <= 127) {
+        result[0] = next_codepoint;
+        result[1] = '\0';
+    } else if (next_codepoint <= 2047) {
+        result[0] = 192 + ((next_codepoint >> 6) & 31);
+        result[1] = 128 + (next_codepoint & 63);
+        result[2] = '\0';
+    } else if (next_codepoint <= 65535) {
+        result[0] = 224 + ((next_codepoint >> 12) & 15);
+        result[1] = 128 + ((next_codepoint >> 6) & 63);
+        result[2] = 128 + (next_codepoint & 63);
+        result[3] = '\0';
+    } else if (next_codepoint <= 1114111) {
+        result[0] = 240 + ((next_codepoint >> 18) & 7);
+        result[1] = 128 + ((next_codepoint >> 12) & 63);
+        result[2] = 128 + ((next_codepoint >> 6) & 63);
+        result[3] = 128 + (next_codepoint & 63);
+        result[4] = '\0';
+    } else {
+        result[0] = '\0';
+    }
+}
+
 
 // UTF-8 Analyzer in main
 int main() {
     char input[MAX_INPUT_LENGTH];
+    char original_input[MAX_INPUT_LENGTH];
     printf("Enter a UTF-8 encoded string: ");
     fgets(input, MAX_INPUT_LENGTH, stdin);
-    
+
+    // Remove newline character at the end of input
     input[strcspn(input, "\n")] = '\0';
 
+    // Store a copy of the original input for later use
+    strncpy(original_input, input, MAX_INPUT_LENGTH);
+
+    // Function calls using the original input where needed
     int ascii_valid = is_ascii(input);
     printf("\n");
     printf("Valid ASCII: %s\n", ascii_valid ? "true" : "false");
 
+    // Capitalize ASCII characters in input
     int32_t capitalized_count = capitalize_ascii(input);
-    printf("Uppercased ASCII: \"%s\" (%d changes made)\n", input, capitalized_count);
+    printf("Uppercased ASCII: \"%s\"\n", input);
 
+    // Length in bytes and number of code points
     int32_t byte_length = strlen(input);
     printf("Length in bytes: %d\n", byte_length);
 
     int32_t code_point_count = utf8_strlen(input);
     printf("Number of code points: %d\n", code_point_count);
 
+    // Bytes per code point
     printf("Bytes per code point: ");
     for (int32_t i = 0; i < code_point_count; i++) {
         int byte_index = codepoint_index_to_byte_index(input, i);
@@ -188,16 +229,19 @@ int main() {
     }
     printf("\n");
 
+    // Use original input to get substring
     char substring[MAX_INPUT_LENGTH];
-    utf8_substring(input, 0, 6, substring);
+    utf8_substring(original_input, 0, 6, substring);
     printf("Substring of the first 6 code points: \"%s\"\n", substring);
 
+    // Code points as decimal numbers
     printf("Code points as decimal numbers: ");
     for (int32_t i = 0; i < code_point_count; i++) {
         printf("%d ", codepoint_at(input, i));
     }
     printf("\n");
 
+    // Detect and print animal emojis
     printf("Animal emojis: ");
     for (int32_t i = 0; i < code_point_count; i++) {
         if (is_animal_emoji_at(input, i)) {
@@ -206,6 +250,10 @@ int main() {
             printf("%.*s ", width, &input[byte_index]);
         }
     }
+    
+    char next_char[MAX_INPUT_LENGTH];
+    next_utf8_char(input, 3, next_char);  // Example for codepoint index 3
+    printf("Next Character of Codepoint at Index 3: \"%s\"\n", next_char);
 
     printf("\n");
     return 0;

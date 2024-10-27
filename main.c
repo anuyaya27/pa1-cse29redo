@@ -191,3 +191,39 @@ int main() {
         if (byte_index != -1) {
             printf("%d ", width_from_start_byte(original_input[byte_index]));
         }
+    }
+    printf("\n");
+
+    char substring[MAX_INPUT_LENGTH];
+    utf8_substring(original_input, 0, 6, substring);
+    printf("Substring of the first 6 code points: \"%s\"\n", substring);
+
+    printf("Code points as decimal numbers: ");
+    for (int32_t i = 0; i < code_point_count; i++) {
+        printf("%d ", codepoint_at(original_input, i));
+    }
+    printf("\n");
+
+    printf("Animal emojis: ");
+    for (int32_t i = 0; i < code_point_count; i++) {
+        if (is_animal_emoji_at(original_input, i)) {
+            int byte_index = codepoint_index_to_byte_index(original_input, i);
+            int width = width_from_start_byte(original_input[byte_index]);
+            printf("%.*s ", width, &original_input[byte_index]);
+        }
+    }
+    printf("\n");
+
+    // Print the next character of the codepoint at index 3 if there are enough codepoints
+        // Print the next character of the codepoint at index 3 if there are enough codepoints
+    char next_char[MAX_INPUT_LENGTH] = "";
+    if (code_point_count > 3) {
+        next_utf8_char(original_input, 3, next_char);
+        printf("Next Character of Codepoint at Index 3: %s\n", next_char);
+    } else {
+        printf("Next Character of Codepoint at Index 3: \n");
+    }
+
+    return 0;
+}
+

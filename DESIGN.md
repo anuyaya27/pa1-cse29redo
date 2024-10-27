@@ -13,4 +13,4 @@ a) UTF-16: this version uses 2 bytes to represent characters.
 b) UTF-32: this version uses a fixed 4 byte representation for any character.
 c) Windows-1252 encoding: this encoding uses 1 byte representation for each character
 
-3. 
+3. Give an example of a character that has exactly three encodings (but not four, like the one in the previous example does)

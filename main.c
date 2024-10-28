@@ -75,19 +75,25 @@ int32_t codepoint_index_to_byte_index(const char str[], int32_t cpi) {
 }
 
 void utf8_substring(const char str[], int32_t cpi_start, int32_t cpi_end, char result[]) {
+    int32_t actual_codepoint_length = utf8_strlen(str);
+    if (cpi_end > actual_codepoint_length) {
+        cpi_end = actual_codepoint_length;
+    }
+
     int32_t start_byte_index = codepoint_index_to_byte_index(str, cpi_start);
     int32_t end_byte_index = codepoint_index_to_byte_index(str, cpi_end);
 
-    if (cpi_start < 0 || cpi_end < 0 || cpi_start >= cpi_end || 
-    start_byte_index == -1 || end_byte_index == -1) {
+    if (cpi_start < 0 || cpi_end < 0 || cpi_start >= cpi_end || start_byte_index == -1) {
         result[0] = '\0';
         return;
     }
 
-    int32_t length = end_byte_index - start_byte_index;
+    int32_t length = (end_byte_index == -1) ? strlen(str + start_byte_index) : end_byte_index - start_byte_index;
     strncpy(result, str + start_byte_index, length);
     result[length] = '\0';
 }
+
+
 
 int32_t codepoint_at(const char str[], int32_t cpi) {
     int32_t byte_index = codepoint_index_to_byte_index(str, cpi);

@@ -14,3 +14,8 @@ b) UTF-32: this version uses a fixed 4 byte representation for any character.
 c) Windows-1252 encoding: this encoding uses 1 byte representation for each character
 
 3. Give an example of a character that has exactly three encodings (but not four, like the one in the previous example does)
+There are several characters outside the ASCII Table that have exactly three encodings. Since I speak hindi, my example for this is a character from the Devnagari script "क". The code point of this character in UTF-8 encoding is U+0915, meaning that it requires three bytes to represent, and thus will have three encodings.
+
+4. What are some problems with having these multiple encodings, especially for ASCII characters? A web search for “overlong UTF-8 encoding” may be useful here.
+Having multiple encodings means that it is easier to bypass the input validation mechanisms when it is used in a system. Thus the security gets vulnerable and becomes easier to attack if a multiple encodings are being used in securing systems.
+An overlong UTF-8 encoding takes up more codepoints that it should take ideally. Thus, another problem with having multiple encodings is that it makes the system slow and the possibility of having a buffer overflow is high. It is even possible that this may cause the system to lead to memory corruption or crash completely.
